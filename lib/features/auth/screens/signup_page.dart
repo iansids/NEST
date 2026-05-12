@@ -143,7 +143,7 @@ class _SignupPageState extends State<SignupPage> {
       return false;
     }
     if (_usernameController.text.length < 2) {
-      _showError('Username must be at least 2 characters after @');
+      _showError('Username must be at least 2 characters');
       return false;
     }
     return true;

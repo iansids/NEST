@@ -26,9 +26,9 @@ class _SignupPageState extends State<SignupPage> {
         // 1. Create auth user with email & password in Firebase Auth
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+            );
 
         // 2. Create the UserModel
         final newUser = UserModel(
@@ -37,17 +37,15 @@ class _SignupPageState extends State<SignupPage> {
           followersCount: 0,
           followingCount: 0,
         );
-
-        // 3. Save the new UserModel to 'tbl_users' in Firestore
         await FirebaseFirestore.instance
             .collection('tbl_users')
             .doc(newUser.userId)
             .set(newUser.toMap());
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Signup Successful!")),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Signup Successful!")));
           // Pop the signup page.
           // The StreamBuilder in main.dart will detect the auth state change and send you to the Dashboard!
           Navigator.of(context).pop();
@@ -60,15 +58,15 @@ class _SignupPageState extends State<SignupPage> {
           errorMessage = 'An account already exists for that email.';
         }
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMessage)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(errorMessage)));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error: $e")),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Error: $e")));
         }
       } finally {
         if (mounted) {
@@ -105,7 +103,7 @@ class _SignupPageState extends State<SignupPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                value!.isEmpty ? 'Enter a username' : null,
+                    value!.isEmpty ? 'Enter a username' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -116,7 +114,7 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) =>
-                value!.contains('@') ? null : 'Enter a valid email',
+                    value!.contains('@') ? null : 'Enter a valid email',
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -126,8 +124,9 @@ class _SignupPageState extends State<SignupPage> {
                   border: OutlineInputBorder(),
                 ),
                 obscureText: true,
-                validator: (value) =>
-                value!.length < 6 ? 'Password must be at least 6 characters' : null,
+                validator: (value) => value!.length < 6
+                    ? 'Password must be at least 6 characters'
+                    : null,
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -136,11 +135,14 @@ class _SignupPageState extends State<SignupPage> {
                   onPressed: _isLoading ? null : _handleSignup,
                   child: _isLoading
                       ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                      : const Text("Create Account", style: TextStyle(fontSize: 16)),
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          "Create Account",
+                          style: TextStyle(fontSize: 16),
+                        ),
                 ),
               ),
             ],

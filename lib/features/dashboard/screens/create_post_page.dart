@@ -7,7 +7,9 @@ import 'dart:io';
 
 /// Page for creating a new post
 class CreatePostPage extends StatefulWidget {
-  const CreatePostPage({super.key});
+  final String username;
+
+  const CreatePostPage({super.key, required this.username});
 
   @override
   State<CreatePostPage> createState() => _CreatePostPageState();
@@ -15,7 +17,7 @@ class CreatePostPage extends StatefulWidget {
 
 class _CreatePostPageState extends State<CreatePostPage> {
   late TextEditingController _postController;
-  final List<File> _selectedImages = [];
+  File? _selectedImage;
   final ImagePicker _imagePicker = ImagePicker();
   bool _isPosting = false;
 
@@ -52,17 +54,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
           return;
         }
 
-        if (_selectedImages.length < 4) {
-          setState(() {
-            _selectedImages.add(file);
-          });
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Maximum 4 images per post')),
-            );
-          }
-        }
+        setState(() {
+          _selectedImage = file;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -73,16 +67,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
   }
 
-  void _removeImage(int index) {
+  void _removeImage() {
     setState(() {
-      _selectedImages.removeAt(index);
+      _selectedImage = null;
     });
   }
 
   void _handlePost() async {
-    if (_postController.text.isEmpty && _selectedImages.isEmpty) {
+    if (_postController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add text or images')),
+        const SnackBar(content: Text('Please add text for your post')),
       );
       return;
     }
@@ -99,14 +93,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
       final postRef = FirebaseFirestore.instance.collection('posts').doc();
 
       await postRef.set({
-        'postId': postRef.id,
-        'userId': user.uid,
+        'post_id': postRef.id,
+        'user_id': user.uid,
         'content': _postController.text,
-        'imageCount': _selectedImages.length,
+        'media_url': null,
         'timestamp': FieldValue.serverTimestamp(),
-        'likesCount': 0,
-        'commentsCount': 0,
-        'sharesCount': 0,
+        'likes_count': 0,
+        'comments_count': 0,
       });
 
       if (mounted) {
@@ -166,7 +159,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  FirebaseAuth.instance.currentUser?.displayName ?? 'User',
+                  widget.username,
                   style: AppTextStyles.subheading(context, fontSize: 14),
                 ),
               ],
@@ -194,14 +187,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 style: AppTextStyles.body(context, fontSize: 16),
               ),
             ),
-            // Image previews
-            if (_selectedImages.isNotEmpty)
+            // Image preview
+            if (_selectedImage != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
                   Text(
-                    'Images (${_selectedImages.length})',
+                    'Image',
                     style: AppTextStyles.body(
                       context,
                       fontSize: 12,
@@ -209,56 +202,42 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                        _selectedImages.length,
-                        (index) => Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Stack(
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    _selectedImages[index],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: GestureDetector(
-                                  onTap: () => _removeImage(index),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.red,
-                                    ),
-                                    padding: const EdgeInsets.all(2),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                  Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _removeImage,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.red,
+                            ),
+                            padding: const EdgeInsets.all(2),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),

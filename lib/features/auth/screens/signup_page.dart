@@ -6,6 +6,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import '../../../core/models/user_model.dart';
 import '../../../core/typography/app_text_styles.dart';
+import '../../../core/services/cloudinary_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -162,7 +163,26 @@ class _SignupPageState extends State<SignupPage> {
             password: _passwordController.text,
           );
 
-      // 2. Create the UserModel
+      // 2. Upload profile image to Cloudinary if provided
+      String? profilePictureUrl;
+      if (_profileImagePath != null) {
+        profilePictureUrl = await CloudinaryService().uploadImage(
+          _profileImagePath!,
+        );
+        if (profilePictureUrl == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to upload profile picture'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          // Continue without profile picture
+        }
+      }
+
+      // 3. Create the UserModel with Cloudinary URL
       final newUser = UserModel(
         userId: userCredential.user!.uid,
         firstName: _firstNameController.text.trim(),
@@ -170,12 +190,12 @@ class _SignupPageState extends State<SignupPage> {
         email: _emailController.text.trim(),
         username: '@${_usernameController.text.trim()}',
         dateOfBirth: _dateOfBirth,
-        profilePicture: null, // Will be updated later if user uploads
+        profilePicture: profilePictureUrl, // Store Cloudinary URL
         followersCount: 0,
         followingCount: 0,
       );
 
-      // 3. Save the new UserModel to 'tbl_users' in Firestore
+      // 4. Save the new UserModel to 'tbl_users' in Firestore
       await FirebaseFirestore.instance
           .collection('tbl_users')
           .doc(newUser.userId)

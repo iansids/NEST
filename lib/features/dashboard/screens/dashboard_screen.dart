@@ -5,6 +5,7 @@ import '../widgets/feed_post.dart';
 import 'create_post_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../profile/screens/profile_screen.dart';
 
 /// Main dashboard/feed screen
 class DashboardScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late List<Post> _posts;
   String? _username;
   String? _fullName;
+  String? _profilePicture;
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _username = data?['username'] ?? 'User';
             _fullName = fullName.isNotEmpty ? fullName : 'User';
+            _profilePicture = data?['profile_picture'];
           });
         }
       }
@@ -52,6 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _username = 'User';
           _fullName = 'User';
+          _profilePicture = null;
         });
       }
     }
@@ -146,15 +150,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    radius: 28,
-                    child: Icon(
-                      Icons.person,
-                      size: 32,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    radius: 22,
+                    child: _profilePicture != null
+                        ? ClipOval(
+                            child: Image.network(
+                              _profilePicture!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.person,
+                                size: 26,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : Icon(Icons.person, size: 26, color: Colors.white),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -197,6 +207,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               title: const Text('My Profile'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
               },
             ),
             const Divider(),
@@ -228,18 +243,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               children: [
                 // User avatar placeholder
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    size: 20,
-                  ),
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  child: _profilePicture != null
+                      ? ClipOval(
+                          child: Image.network(
+                            _profilePicture!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.person,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
+                              size: 20,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          Icons.person,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          size: 20,
+                        ),
                 ),
                 const SizedBox(width: 12),
                 // Text input button

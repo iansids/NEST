@@ -13,9 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 2. Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const NestApp());
 }
@@ -31,9 +29,7 @@ class NestApp extends StatelessWidget {
       theme: AppColors.lightTheme,
       darkTheme: AppColors.darkTheme,
       themeMode: ThemeMode.system,
-      routes: {
-        '/signup': (context) => const SignupPage(),
-      },
+      routes: {'/signup': (context) => const SignupPage()},
       // 3. Setup StreamBuilder for automatic redirect logic
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),

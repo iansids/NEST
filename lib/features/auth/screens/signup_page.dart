@@ -169,7 +169,12 @@ class _SignupPageState extends State<SignupPage> {
       // 2. Create the UserModel
       final newUser = UserModel(
         userId: userCredential.user!.uid,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
         username: _usernameController.text.trim(),
+        dateOfBirth: _dateOfBirth,
+        profilePicture: null, // Will be updated later if user uploads
         followersCount: 0,
         followingCount: 0,
       );

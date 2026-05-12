@@ -3,6 +3,7 @@ import '../../../core/models/post_model.dart';
 import '../../../core/typography/app_text_styles.dart';
 import '../widgets/post_creation_box.dart';
 import '../widgets/feed_post.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Main dashboard/feed screen
 class DashboardScreen extends StatefulWidget {
@@ -24,51 +25,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _initializeMockPosts() {
     _posts = [
       Post(
-        id: '1',
+        postId: '1',
         userId: 'user1',
         userName: 'Alex Chen',
         userAvatar: '',
         content:
-            'Just launched my new Flutter project! Really excited about the modular architecture we\'ve built. #flutter #development',
+        'Just launched my new Flutter project! Really excited about the modular architecture we\'ve built. #flutter #development',
         images: [],
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        likes: 128,
-        comments: 24,
-        shares: 15,
+        likesCount: 128,
+        commentsCount: 24,
+        sharesCount: 15,
       ),
       Post(
-        id: '2',
+        postId: '2',
         userId: 'user2',
         userName: 'Sarah Johnson',
         userAvatar: '',
         content:
-            'Beautiful sunset at the beach today. Nothing beats a good walk by the ocean! 🌅',
+        'Beautiful sunset at the beach today. Nothing beats a good walk by the ocean! 🌅',
         images: ['resources/ICON.png', 'resources/LOGO.png'],
         timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-        likes: 456,
-        comments: 89,
-        shares: 42,
+        likesCount: 456,
+        commentsCount: 89,
+        sharesCount: 42,
       ),
       Post(
-        id: '3',
+        postId: '3',
         userId: 'user3',
         userName: 'Dev Community',
         userAvatar: '',
         content:
-            'Top 5 Flutter best practices for building scalable apps:\n1. Use proper state management\n2. Create reusable widgets\n3. Keep business logic separate\n4. Follow consistent naming conventions\n5. Write tests!',
+        'Top 5 Flutter best practices for building scalable apps:\n1. Use proper state management\n2. Create reusable widgets\n3. Keep business logic separate\n4. Follow consistent naming conventions\n5. Write tests!',
         images: [],
         timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        likes: 892,
-        comments: 156,
-        shares: 234,
+        likesCount: 892,
+        commentsCount: 156,
+        sharesCount: 234,
       ),
       Post(
-        id: '4',
+        postId: '4',
         userId: 'user4',
         userName: 'Jane Doe',
         userAvatar: '',
         content:
-            'Multi-image carousel test post. Using Reddit-style navigation for image browsing.',
+        'Multi-image carousel test post. Using Reddit-style navigation for image browsing.',
         images: [
           'resources/ICON.png',
           'resources/LOGO.png',
@@ -76,9 +77,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'resources/LOGO.png',
         ],
         timestamp: DateTime.now().subtract(const Duration(hours: 6)),
-        likes: 234,
-        comments: 45,
-        shares: 18,
+        likesCount: 234,
+        commentsCount: 45,
+        sharesCount: 18,
       ),
     ];
   }
@@ -109,6 +110,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: true,
         elevation: 0,
+        // ADD THE ACTIONS ARRAY HERE
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+            },
+          ),
+        ],
       ),
       body: ListView(
         children: [

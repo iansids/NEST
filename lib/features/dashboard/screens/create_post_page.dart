@@ -50,8 +50,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
           .get();
       final userAvatar = userDoc.data()?['profile_picture'] ?? '';
 
-      final postRef =
-          FirebaseFirestore.instance.collection('tbl_posts').doc();
+      final postRef = FirebaseFirestore.instance.collection('tbl_posts').doc();
 
       await postRef.set({
         'post_id': postRef.id,
@@ -71,8 +70,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error creating post: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error creating post: $e')));
       }
     } finally {
       if (mounted) {

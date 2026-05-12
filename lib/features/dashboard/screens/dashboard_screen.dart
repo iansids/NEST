@@ -30,7 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         userName: 'Alex Chen',
         userAvatar: '',
         content:
-        'Just launched my new Flutter project! Really excited about the modular architecture we\'ve built. #flutter #development',
+            'Just launched my new Flutter project! Really excited about the modular architecture we\'ve built. #flutter #development',
         images: [],
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
         likesCount: 128,
@@ -43,7 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         userName: 'Sarah Johnson',
         userAvatar: '',
         content:
-        'Beautiful sunset at the beach today. Nothing beats a good walk by the ocean! 🌅',
+            'Beautiful sunset at the beach today. Nothing beats a good walk by the ocean! 🌅',
         images: ['resources/ICON.png', 'resources/LOGO.png'],
         timestamp: DateTime.now().subtract(const Duration(hours: 4)),
         likesCount: 456,
@@ -56,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         userName: 'Dev Community',
         userAvatar: '',
         content:
-        'Top 5 Flutter best practices for building scalable apps:\n1. Use proper state management\n2. Create reusable widgets\n3. Keep business logic separate\n4. Follow consistent naming conventions\n5. Write tests!',
+            'Top 5 Flutter best practices for building scalable apps:\n1. Use proper state management\n2. Create reusable widgets\n3. Keep business logic separate\n4. Follow consistent naming conventions\n5. Write tests!',
         images: [],
         timestamp: DateTime.now().subtract(const Duration(days: 1)),
         likesCount: 892,
@@ -69,7 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         userName: 'Jane Doe',
         userAvatar: '',
         content:
-        'Multi-image carousel test post. Using Reddit-style navigation for image browsing.',
+            'Multi-image carousel test post. Using Reddit-style navigation for image browsing.',
         images: [
           'resources/ICON.png',
           'resources/LOGO.png',
@@ -85,11 +85,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _handleCreatePost() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const CreatePostPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const CreatePostPage()));
   }
 
   @override

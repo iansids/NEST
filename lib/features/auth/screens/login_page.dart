@@ -23,18 +23,16 @@ class _LoginPageState extends State<LoginPage> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _isLoading = false);
-        // TODO: Handle successful login - navigate to home
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Login as $_email')));
+        // Navigate to dashboard on successful login
+        Navigator.of(context).pushReplacementNamed('/dashboard');
       }
     });
   }
 
   void _handleGoogleLogin() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google login - Coming soon')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Google login - Coming soon')));
   }
 
   void _handleForgotPassword() {
@@ -57,7 +55,20 @@ class _LoginPageState extends State<LoginPage> {
                 // NEST Logo
                 SizedBox(
                   height: 80,
-                  child: Image.asset('resources/LOGO.png', fit: BoxFit.contain),
+                  child: Image.asset(
+                    'resources/LOGO.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Text(
+                        'NEST',
+                        style: AppTextStyles.heading(
+                          context,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 32,
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
 

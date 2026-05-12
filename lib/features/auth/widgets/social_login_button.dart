@@ -50,6 +50,13 @@ class SocialLoginButton extends StatelessWidget {
             width: 24,
             height: 24,
             fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.public,
+                size: 24,
+                color: Theme.of(context).colorScheme.primary,
+              );
+            },
           ),
         ),
       );

@@ -14,7 +14,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToLanding();
+    // Use addPostFrameCallback to ensure widget tree is built before navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigateToLanding();
+    });
   }
 
   Future<void> _navigateToLanding() async {

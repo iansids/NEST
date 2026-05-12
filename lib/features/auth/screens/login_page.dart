@@ -14,7 +14,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
-  String _email = '';
+  String _email = ''; // ignore: unused_field
 
   void _handleLogin() {
     setState(() => _isLoading = true);

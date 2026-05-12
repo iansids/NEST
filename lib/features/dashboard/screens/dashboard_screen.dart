@@ -36,9 +36,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             .get();
 
         if (userDoc.exists) {
+          final data = userDoc.data();
+          final firstName = data?['first_name'] ?? '';
+          final lastName = data?['last_name'] ?? '';
+          final fullName = '$firstName $lastName'.trim();
+
           setState(() {
-            _username = userDoc.data()?['username'] ?? 'User';
-            _fullName = userDoc.data()?['full_name'] ?? _username;
+            _username = data?['username'] ?? 'User';
+            _fullName = fullName.isNotEmpty ? fullName : 'User';
           });
         }
       }
@@ -141,7 +146,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     radius: 28,
                     child: Icon(
                       Icons.person,
@@ -165,7 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '@${_username ?? 'username'}',
+                          '${_username ?? 'username'}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.8),

@@ -92,15 +92,11 @@ class _SignupPageState extends State<SignupPage> {
             toolbarColor: Theme.of(context).colorScheme.primary,
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: true,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-            ],
+            aspectRatioPresets: [CropAspectRatioPreset.square],
           ),
           IOSUiSettings(
             title: 'Crop Profile Picture',
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-            ],
+            aspectRatioPresets: [CropAspectRatioPreset.square],
           ),
         ],
       );
@@ -162,9 +158,9 @@ class _SignupPageState extends State<SignupPage> {
       // 1. Create auth user with email & password in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
 
       // 2. Create the UserModel
       final newUser = UserModel(
@@ -172,7 +168,7 @@ class _SignupPageState extends State<SignupPage> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
-        username: _usernameController.text.trim(),
+        username: '@${_usernameController.text.trim()}',
         dateOfBirth: _dateOfBirth,
         profilePicture: null, // Will be updated later if user uploads
         followersCount: 0,
@@ -186,9 +182,9 @@ class _SignupPageState extends State<SignupPage> {
           .set(newUser.toMap());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Signup Successful!")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Signup Successful!")));
         Navigator.of(context).pop();
       }
     } on FirebaseAuthException catch (e) {
@@ -263,10 +259,7 @@ class _SignupPageState extends State<SignupPage> {
                 Text(
                   _getStepTitle(),
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.heading(
-                    context,
-                    fontSize: 24,
-                  ),
+                  style: AppTextStyles.heading(context, fontSize: 24),
                 ),
                 const SizedBox(height: 40),
 
@@ -288,10 +281,12 @@ class _SignupPageState extends State<SignupPage> {
                       ElevatedButton.icon(
                         onPressed: () => setState(() => _currentStep--),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onSurface,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surface,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface,
                           side: BorderSide(
                             color: Theme.of(context).colorScheme.outline,
                           ),
@@ -312,8 +307,7 @@ class _SignupPageState extends State<SignupPage> {
                     ElevatedButton.icon(
                       onPressed: _isLoading ? null : _handleNextStep,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
@@ -333,11 +327,33 @@ class _SignupPageState extends State<SignupPage> {
                               height: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Icon(Icons.arrow_forward, size: 18),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Back to Login
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account? ',
+                      style: AppTextStyles.body(context),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Login',
+                        style: AppTextStyles.body(
+                          context,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -417,13 +433,7 @@ class _SignupPageState extends State<SignupPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.subheading(
-            context,
-            fontSize: 14,
-          ),
-        ),
+        Text(label, style: AppTextStyles.subheading(context, fontSize: 14)),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -432,9 +442,7 @@ class _SignupPageState extends State<SignupPage> {
             hintStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
@@ -457,10 +465,7 @@ class _SignupPageState extends State<SignupPage> {
       children: [
         Text(
           'Username',
-          style: AppTextStyles.subheading(
-            context,
-            fontSize: 14,
-          ),
+          style: AppTextStyles.subheading(context, fontSize: 14),
         ),
         const SizedBox(height: 8),
         Row(
@@ -489,7 +494,9 @@ class _SignupPageState extends State<SignupPage> {
                 decoration: InputDecoration(
                   hintText: 'yourname',
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.4),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: const BorderRadius.only(
@@ -518,10 +525,7 @@ class _SignupPageState extends State<SignupPage> {
       children: [
         Text(
           'Date of Birth',
-          style: AppTextStyles.subheading(
-            context,
-            fontSize: 14,
-          ),
+          style: AppTextStyles.subheading(context, fontSize: 14),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -530,9 +534,7 @@ class _SignupPageState extends State<SignupPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -540,14 +542,10 @@ class _SignupPageState extends State<SignupPage> {
                   ? 'Select Date'
                   : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
               style: _dateOfBirth == null
-                  ? AppTextStyles.body(
-                      context,
-                      fontSize: 16,
-                    ).copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.4),
+                  ? AppTextStyles.body(context, fontSize: 16).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.4),
                     )
                   : AppTextStyles.body(context, fontSize: 16),
             ),
@@ -563,10 +561,7 @@ class _SignupPageState extends State<SignupPage> {
       children: [
         Text(
           'Profile Picture (Optional)',
-          style: AppTextStyles.subheading(
-            context,
-            fontSize: 14,
-          ),
+          style: AppTextStyles.subheading(context, fontSize: 14),
         ),
         const SizedBox(height: 12),
         Center(
@@ -625,8 +620,10 @@ class _SignupPageState extends State<SignupPage> {
                                   const SizedBox(height: 8),
                                   Text(
                                     'Error loading image',
-                                    style:
-                                        AppTextStyles.body(context, fontSize: 12),
+                                    style: AppTextStyles.body(
+                                      context,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -639,8 +636,7 @@ class _SignupPageState extends State<SignupPage> {
                       top: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _profileImagePath = null),
+                        onTap: () => setState(() => _profileImagePath = null),
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,

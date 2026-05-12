@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
 
 class FirestoreDebugScreen extends StatefulWidget {
@@ -11,7 +12,8 @@ class FirestoreDebugScreen extends StatefulWidget {
 
 class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final String targetUserId = 'xq8i7ChN5ycgnSdu7V6PLpHwkmT2';
+  final String targetUserId =
+      FirebaseAuth.instance.currentUser?.uid ?? 'no-user';
   
   late Future<Map<String, dynamic>> _debugData;
 

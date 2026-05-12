@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'core/theme/app_colors.dart';
 import 'features/dashboard/screens/dashboard_screen.dart';
 import 'features/auth/screens/login_page.dart'; // Add this import
+import 'features/auth/screens/signup_page.dart';
 
 void main() async {
   // 1. Ensure plugin services are initialized
@@ -30,6 +31,9 @@ class NestApp extends StatelessWidget {
       theme: AppColors.lightTheme,
       darkTheme: AppColors.darkTheme,
       themeMode: ThemeMode.system,
+      routes: {
+        '/signup': (context) => const SignupPage(),
+      },
       // 3. Setup StreamBuilder for automatic redirect logic
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),

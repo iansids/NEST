@@ -14,7 +14,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToLanding();
+    // Use addPostFrameCallback to ensure widget tree is built before navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigateToLanding();
+    });
   }
 
   Future<void> _navigateToLanding() async {
@@ -22,7 +25,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/landing');
+      Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 
@@ -32,7 +35,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: Theme.of(context).colorScheme.background,
+        color: Theme.of(context).colorScheme.surface,
         child: const LoadingAnimation(duration: Duration(milliseconds: 2000)),
       ),
     );

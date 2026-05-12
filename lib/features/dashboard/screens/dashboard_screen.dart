@@ -54,8 +54,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Post(
         postId: '1',
         userId: 'user1',
-        userName: 'Alex Chen',
-        userAvatar: '',
         content:
             'Just launched my new Flutter project! Really excited about the modular architecture we\'ve built. #flutter #development',
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),
@@ -65,8 +63,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Post(
         postId: '2',
         userId: 'user2',
-        userName: 'Sarah Johnson',
-        userAvatar: '',
         content:
             'Beautiful sunset at the beach today. Nothing beats a good walk by the ocean! 🌅',
         mediaUrl: 'resources/LOGO.png',
@@ -77,8 +73,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Post(
         postId: '3',
         userId: 'user3',
-        userName: 'Dev Community',
-        userAvatar: '',
         content:
             'Top 5 Flutter best practices for building scalable apps:\n1. Use proper state management\n2. Create reusable widgets\n3. Keep business logic separate\n4. Follow consistent naming conventions\n5. Write tests!',
         timestamp: DateTime.now().subtract(const Duration(days: 1)),
@@ -88,8 +82,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Post(
         postId: '4',
         userId: 'user4',
-        userName: 'Jane Doe',
-        userAvatar: '',
         content: 'Check out my latest photo!',
         mediaUrl: 'resources/ICON.png',
         timestamp: DateTime.now().subtract(const Duration(hours: 6)),

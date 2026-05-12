@@ -1,14 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nest/core/typography/app_text_styles.dart';
 import 'package:nest/core/models/post_model.dart';
 import 'image_carousel.dart';
 
 /// Feed post card
 /// Displays user info, content, images, and action buttons
-class FeedPost extends StatelessWidget {
+class FeedPost extends StatefulWidget {
   final Post post;
 
   const FeedPost({super.key, required this.post});
+
+  @override
+  State<FeedPost> createState() => _FeedPostState();
+}
+
+class _FeedPostState extends State<FeedPost> {
+  late Future<Map<String, dynamic>> _userDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _userDataFuture = _fetchUserData();
+  }
+
+  Future<Map<String, dynamic>> _fetchUserData() async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('tbl_users')
+          .doc(widget.post.userId)
+          .get();
+      return userDoc.data() ?? {};
+    } catch (e) {
+      return {};
+    }
+  }
 
   String _formatTimeAgo(DateTime timestamp) {
     final now = DateTime.now();
@@ -23,126 +49,147 @@ class FeedPost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _userDataFuture,
+      builder: (context, snapshot) {
+        final userName = snapshot.data?['username'] ?? 'Unknown User';
+        final userAvatar = snapshot.data?['profile_picture'] ?? '';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: Column(
-        children: [
-          // User header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                // Avatar
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                  ),
-                  child: post.userAvatar.isNotEmpty
-                      ? Image.asset(
-                          post.userAvatar,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
+          child: Column(
+            children: [
+              // User header
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    // Avatar
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                      child: userAvatar.isNotEmpty
+                          ? Image.asset(
+                              userAvatar,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.person,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                  size: 20,
+                                );
+                              },
+                            )
+                          : Icon(
                               Icons.person,
                               color: Theme.of(
                                 context,
                               ).colorScheme.onPrimaryContainer,
                               size: 20,
-                            );
-                          },
-                        )
-                      : Icon(
-                          Icons.person,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                          size: 20,
-                        ),
-                ),
-                const SizedBox(width: 12),
-                // User name and timestamp
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.userName,
-                        style: AppTextStyles.subheading(context, fontSize: 14),
+                            ),
+                    ),
+                    const SizedBox(width: 12),
+                    // User name and timestamp
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userName,
+                            style: AppTextStyles.subheading(
+                              context,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            _formatTimeAgo(widget.post.timestamp),
+                            style: AppTextStyles.body(
+                              context,
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        _formatTimeAgo(post.timestamp),
-                        style: AppTextStyles.body(
-                          context,
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    // More options
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.more_vert),
+                      iconSize: 20,
+                    ),
+                  ],
                 ),
-                // More options
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.more_vert),
-                  iconSize: 20,
+              ),
+              // Post content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  widget.post.content,
+                  style: AppTextStyles.body(context),
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              const SizedBox(height: 12),
+              // Image carousel (if exists)
+              if (widget.post.hasMedia) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ImageCarousel(images: [widget.post.mediaUrl!]),
+                ),
+                const SizedBox(height: 12),
               ],
-            ),
-          ),
-          // Post content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              post.content,
-              style: AppTextStyles.body(context),
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Image carousel (if exists)
-          if (post.hasMedia) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ImageCarousel(images: [post.mediaUrl!]),
-            ),
-            const SizedBox(height: 12),
-          ],
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                _ActionButton(
-                  icon: Icons.favorite_outline,
-                  label: post.likesCount > 0 ? '${post.likesCount}' : 'Like',
-                  onPressed: () {},
+              // Action buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                const SizedBox(width: 24),
-                _ActionButton(
-                  icon: Icons.comment_outlined,
-                  label: post.commentsCount > 0
-                      ? '${post.commentsCount}'
-                      : 'Comment',
-                  onPressed: () {},
+                child: Row(
+                  children: [
+                    _ActionButton(
+                      icon: Icons.favorite_outline,
+                      label: widget.post.likesCount > 0
+                          ? '${widget.post.likesCount}'
+                          : 'Like',
+                      onPressed: () {},
+                    ),
+                    const SizedBox(width: 24),
+                    _ActionButton(
+                      icon: Icons.comment_outlined,
+                      label: widget.post.commentsCount > 0
+                          ? '${widget.post.commentsCount}'
+                          : 'Comment',
+                      onPressed: () {},
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

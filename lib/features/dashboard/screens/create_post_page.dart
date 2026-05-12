@@ -61,8 +61,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
         'timestamp': FieldValue.serverTimestamp(),
         'likes_count': 0,
         'comments_count': 0,
-        'username': widget.username,
-        'user_avatar': userAvatar,
       });
 
       if (mounted) {

@@ -9,10 +9,6 @@ class Post {
   final int likesCount;
   final int commentsCount;
 
-  // Additional UI fields that you might fetch from tbl_users or denormalize into tbl_posts
-  final String userName;
-  final String userAvatar;
-
   Post({
     required this.postId,
     required this.userId,
@@ -21,8 +17,6 @@ class Post {
     required this.timestamp,
     required this.likesCount,
     required this.commentsCount,
-    this.userName = 'Unknown User',
-    this.userAvatar = '',
   });
 
   bool get hasMedia => mediaUrl != null && mediaUrl!.isNotEmpty;
@@ -36,9 +30,6 @@ class Post {
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       likesCount: map['likes_count'] ?? 0,
       commentsCount: map['comments_count'] ?? 0,
-      // In a production app, you might fetch these from tbl_users using the user_id
-      userName: map['username'] ?? '@user',
-      userAvatar: map['user_avatar'] ?? '',
     );
   }
 

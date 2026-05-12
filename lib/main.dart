@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_colors.dart';
 import 'features/loading/screens/loading_screen.dart';
-import 'features/landing/screens/landing_page.dart';
+import 'features/dashboard/screens/dashboard_screen.dart';
+import 'features/auth/screens/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
       home: const LoadingScreen(),
       routes: {
         '/loading': (context) => const LoadingScreen(),
-        '/landing': (context) => const LandingPage(),
+        '/login': (context) => const LoginPage(),
+        '/dashboard': (context) => const DashboardScreen(),
       },
     );
   }

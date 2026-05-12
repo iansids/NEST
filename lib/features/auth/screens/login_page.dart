@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import '../widgets/login_form.dart';
 import '../widgets/divider_text.dart';
 import '../widgets/social_login_button.dart';
 import '../../../core/typography/app_text_styles.dart';
+import 'signup_page.dart'; // Import the signup page
 
 /// Login page - Main authentication screen
 class LoginPage extends StatefulWidget {
@@ -15,18 +17,46 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String _email = '';
+  String _password = ''; // Added state for password
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      // Use Firebase Auth to sign in
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _email.trim(),
+        password: _password,
+      );
+
+      // We do not need Navigator.pushReplacementNamed anymore
+      // because the StreamBuilder in main.dart handles the navigation automatically
+      // when it detects a successful login state.
+
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = "Login failed. Please try again.";
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        errorMessage = 'No user found for that email, or incorrect password.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Incorrect password provided for that user.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        // Navigate to dashboard on successful login
-        Navigator.of(context).pushReplacementNamed('/dashboard');
       }
-    });
+    }
   }
 
   void _handleGoogleLogin() {
@@ -96,6 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                 LoginForm(
                   isLoading: _isLoading,
                   onEmailChanged: (email) => _email = email,
+                  onPasswordChanged: (password) => _password = password, // Capture password
                   onLoginPressed: _handleLogin,
                   onForgotPassword: _handleForgotPassword,
                 ),
@@ -123,10 +154,10 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // TODO: Navigate to sign up
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sign up - Coming soon'),
+                        // Navigate to the real SignupPage
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SignupPage(),
                           ),
                         );
                       },

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/typography/app_text_styles.dart';
-import '../../../core/models/post_model.dart';
+import 'package:nest/core/typography/app_text_styles.dart';
+import 'package:nest/core/models/post_model.dart';
 import 'image_carousel.dart';
 
 /// Feed post card
@@ -51,25 +51,25 @@ class FeedPost extends StatelessWidget {
                   ),
                   child: post.userAvatar.isNotEmpty
                       ? Image.asset(
-                          post.userAvatar,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                              size: 20,
-                            );
-                          },
-                        )
+                    post.userAvatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.person,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimaryContainer,
+                        size: 20,
+                      );
+                    },
+                  )
                       : Icon(
-                          Icons.person,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                          size: 20,
-                        ),
+                    Icons.person,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // User name and timestamp
@@ -116,7 +116,10 @@ class FeedPost extends StatelessWidget {
           if (post.hasImages) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ImageCarousel(images: post.images),
+              // Pass the images list, or wrap the single mediaUrl in a list as a fallback
+              child: ImageCarousel(
+                  images: post.images.isNotEmpty ? post.images : [post.mediaUrl]
+              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -127,19 +130,19 @@ class FeedPost extends StatelessWidget {
               children: [
                 _ActionButton(
                   icon: Icons.favorite_outline,
-                  label: post.likes > 0 ? '${post.likes}' : 'Like',
+                  label: post.likesCount > 0 ? '${post.likesCount}' : 'Like',
                   onPressed: () {},
                 ),
                 const SizedBox(width: 24),
                 _ActionButton(
                   icon: Icons.comment_outlined,
-                  label: post.comments > 0 ? '${post.comments}' : 'Comment',
+                  label: post.commentsCount > 0 ? '${post.commentsCount}' : 'Comment',
                   onPressed: () {},
                 ),
                 const SizedBox(width: 24),
                 _ActionButton(
                   icon: Icons.share_outlined,
-                  label: post.shares > 0 ? '${post.shares}' : 'Share',
+                  label: post.sharesCount > 0 ? '${post.sharesCount}' : 'Share',
                   onPressed: () {},
                 ),
               ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/post_model.dart';
 import '../../../core/typography/app_text_styles.dart';
-import '../widgets/post_creation_box.dart';
 import '../widgets/feed_post.dart';
+import 'create_post_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Main dashboard/feed screen
@@ -85,15 +85,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _handleCreatePost() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Post created! (Coming soon)')),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const CreatePostPage(),
+      ),
     );
-  }
-
-  void _handleAttachImage() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Image picker - Coming soon')));
   }
 
   @override
@@ -123,10 +119,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: ListView(
         children: [
-          // Post creation box
-          PostCreationBox(
-            onCreatePost: _handleCreatePost,
-            onAttachImage: _handleAttachImage,
+          // Post creation button (looks like text box)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                // User avatar placeholder
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                  child: Icon(
+                    Icons.person,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Text input button
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _handleCreatePost,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                      child: Text(
+                        "What's on your mind?",
+                        style: AppTextStyles.body(
+                          context,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           // Feed posts

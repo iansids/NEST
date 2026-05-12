@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/typography/app_text_styles.dart';
-import '../../../core/models/post_model.dart';
+import 'package:nest/core/typography/app_text_styles.dart';
+import 'package:nest/core/models/post_model.dart';
 import 'image_carousel.dart';
 
 /// Feed post card
@@ -51,25 +51,25 @@ class FeedPost extends StatelessWidget {
                   ),
                   child: post.userAvatar.isNotEmpty
                       ? Image.asset(
-                          post.userAvatar,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                              size: 20,
-                            );
-                          },
-                        )
+                    post.userAvatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.person,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimaryContainer,
+                        size: 20,
+                      );
+                    },
+                  )
                       : Icon(
-                          Icons.person,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                          size: 20,
-                        ),
+                    Icons.person,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 // User name and timestamp

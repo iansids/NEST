@@ -1,32 +1,55 @@
-/// Data model for social feed posts
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Post {
-  final String id;
+  final String postId;
   final String userId;
+  final String content;
+  final String mediaUrl;
+  final DateTime timestamp;
+  final int likesCount;
+  final int commentsCount;
+
+  // Additional UI fields that you might fetch from tbl_users or denormalize into tbl_posts
   final String userName;
   final String userAvatar;
-  final String content;
-  final List<String> images;
-  final DateTime timestamp;
-  final int likes;
-  final int comments;
-  final int shares;
 
   Post({
-    required this.id,
+    required this.postId,
     required this.userId,
-    required this.userName,
-    required this.userAvatar,
     required this.content,
-    required this.images,
+    required this.mediaUrl,
     required this.timestamp,
-    required this.likes,
-    required this.comments,
-    required this.shares,
+    required this.likesCount,
+    required this.commentsCount,
+    this.userName = 'Unknown User',
+    this.userAvatar = '',
   });
 
-  /// Check if post has images
-  bool get hasImages => images.isNotEmpty;
+  bool get hasImages => mediaUrl.isNotEmpty;
 
-  /// Get the number of images
-  int get imageCount => images.length;
+  factory Post.fromMap(Map<String, dynamic> map, String documentId) {
+    return Post(
+      postId: documentId,
+      userId: map['user_id'] ?? '',
+      content: map['content'] ?? '',
+      mediaUrl: map['media_url'] ?? '',
+      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      likesCount: map['likes_count'] ?? 0,
+      commentsCount: map['comments_count'] ?? 0,
+      // In a production app, you might fetch these from tbl_users using the user_id
+      userName: map['username'] ?? '@user',
+      userAvatar: map['user_avatar'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': userId,
+      'content': content,
+      'media_url': mediaUrl,
+      'timestamp': FieldValue.serverTimestamp(),
+      'likes_count': likesCount,
+      'comments_count': commentsCount,
+    };
+  }
 }

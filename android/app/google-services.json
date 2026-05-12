@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "735183806178",
+    "project_id": "microblogging-app-121c9",
+    "storage_bucket": "microblogging-app-121c9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735183806178:android:5ea5be21a80d15087b88bb",
+        "android_client_info": {
+          "package_name": "com.example.nest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTOi4bwe6usoIP93Joj1XEa2f2SiXt37s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

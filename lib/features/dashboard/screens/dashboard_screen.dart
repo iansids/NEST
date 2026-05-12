@@ -3,6 +3,7 @@ import '../../../core/models/post_model.dart';
 import '../../../core/typography/app_text_styles.dart';
 import '../widgets/post_creation_box.dart';
 import '../widgets/feed_post.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Main dashboard/feed screen
 class DashboardScreen extends StatefulWidget {
@@ -109,6 +110,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: true,
         elevation: 0,
+        // ADD THE ACTIONS ARRAY HERE
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+            },
+          ),
+        ],
       ),
       body: ListView(
         children: [

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
+import 'dart:async';
 import '../../../core/models/post_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/typography/app_text_styles.dart';
@@ -20,19 +21,24 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
   late String _viewingUserId;
   UserModel? _user;
   List<Post> _userPosts = [];
   bool _isLoading = true;
   bool _isFollowing = false;
+  bool _isFollowingLoading = false;
+  late TabController _tabController;
+  StreamSubscription? _followStatusSubscription;
 
   @override
   void initState() {
     super.initState();
     final currentUser = FirebaseAuth.instance.currentUser;
     _viewingUserId = widget.userId ?? currentUser?.uid ?? '';
+    _tabController = TabController(length: 2, vsync: this);
     _loadProfileData();
+    _listenToFollowStatus();
   }
 
   Future<void> _loadProfileData() async {
@@ -91,11 +97,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return currentUser?.uid == _viewingUserId;
   }
 
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _followStatusSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _listenToFollowStatus() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || _isCurrentUser()) return;
+
+    // Listen to the current user's document for changes to their following list
+    _followStatusSubscription = FirebaseFirestore.instance
+        .collection('tbl_users')
+        .doc(currentUser.uid)
+        .snapshots()
+        .listen((snapshot) {
+          if (mounted && !_isFollowingLoading) {
+            final following = List<String>.from(
+              snapshot.data()?['following'] ?? [],
+            );
+            setState(() {
+              _isFollowing = following.contains(_viewingUserId);
+            });
+          }
+        });
+  }
+
   Future<void> _toggleFollow() async {
-    if (_user == null) return;
+    if (_user == null || _isFollowingLoading) return;
 
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
+
+    // Set loading state to prevent listener from interfering
+    setState(() => _isFollowingLoading = true);
 
     try {
       final currentUserRef = FirebaseFirestore.instance
@@ -123,9 +160,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
 
-      setState(() => _isFollowing = !_isFollowing);
+      // Update local state immediately
+      if (mounted) {
+        setState(() {
+          _isFollowing = !_isFollowing;
+          // Update follower count in the user object
+          if (_user != null) {
+            _user = UserModel(
+              userId: _user!.userId,
+              firstName: _user!.firstName,
+              lastName: _user!.lastName,
+              email: _user!.email,
+              username: _user!.username,
+              profilePicture: _user!.profilePicture,
+              bio: _user!.bio,
+              dateOfBirth: _user!.dateOfBirth,
+              followersCount: _isFollowing
+                  ? _user!.followersCount + 1
+                  : _user!.followersCount - 1,
+              followingCount: _user!.followingCount,
+            );
+          }
+          _isFollowingLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
+        setState(() => _isFollowingLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
@@ -283,180 +344,285 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Header
-            Container(
-              color: Theme.of(context).colorScheme.surface,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar and User Info
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 44,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        child: _user!.profilePicture == null
-                            ? Icon(
-                                Icons.person,
-                                size: 48,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              )
-                            : ClipOval(
-                                child: Image.network(
-                                  _user!.profilePicture!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
-                                    Icons.person,
-                                    size: 48,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverToBoxAdapter(
+              child: Container(
+                color: Theme.of(context).colorScheme.surface,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Avatar and User Info
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 44,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer,
+                          child: _user!.profilePicture == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 48,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                )
+                              : ClipOval(
+                                  child: Image.network(
+                                    _user!.profilePicture!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Icon(
+                                      Icons.person,
+                                      size: 48,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimaryContainer,
+                                    ),
                                   ),
                                 ),
-                              ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${_user!.firstName} ${_user!.lastName}',
-                              style: AppTextStyles.heading(
-                                context,
-                                fontSize: 20,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              _user!.username,
-                              style: AppTextStyles.subheading(
-                                context,
-                                color: Theme.of(
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${_user!.firstName} ${_user!.lastName}',
+                                style: AppTextStyles.heading(
                                   context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (_user!.bio != null && _user!.bio!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  _user!.bio!,
-                                  style: AppTextStyles.body(context),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                                  fontSize: 20,
                                 ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Followers/Following Stats
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Followers',
-                          count: _user!.followersCount,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Following',
-                          count: _user!.followingCount,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Posts',
-                          count: _userPosts.length,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Action Button (Edit Profile or Follow)
-                  SizedBox(
-                    width: double.infinity,
-                    child: _isCurrentUser()
-                        ? TextButton.icon(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.12),
-                            ),
-                            onPressed: _pickAndUploadProfileImage,
-                            icon: const Icon(Icons.edit),
-                            label: const Text('Edit Profile'),
-                          )
-                        : ElevatedButton(
-                            onPressed: _toggleFollow,
-                            child: Text(_isFollowing ? 'Unfollow' : 'Follow'),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            // Posts Section
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Posts',
-                    style: AppTextStyles.heading(context, fontSize: 18),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_userPosts.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Text(
-                          _isCurrentUser()
-                              ? 'No posts yet. Start sharing!'
-                              : 'No posts from this user',
-                          style: AppTextStyles.body(
-                            context,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                              Text(
+                                _user!.username,
+                                style: AppTextStyles.subheading(
+                                  context,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (_user!.bio != null && _user!.bio!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    _user!.bio!,
+                                    style: AppTextStyles.body(context),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                      ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _userPosts.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: FeedPost(post: _userPosts[index]),
-                        );
-                      },
+                      ],
                     ),
+                    const SizedBox(height: 16),
+                    // Followers/Following Stats
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _StatCard(
+                            label: 'Followers',
+                            count: _user!.followersCount,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _StatCard(
+                            label: 'Following',
+                            count: _user!.followingCount,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _StatCard(
+                            label: 'Posts',
+                            count: _userPosts.length,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Action Button (Edit Profile or Follow)
+                    SizedBox(
+                      width: double.infinity,
+                      child: _isCurrentUser()
+                          ? TextButton.icon(
+                              style: TextButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.12),
+                              ),
+                              onPressed: _pickAndUploadProfileImage,
+                              icon: const Icon(Icons.edit),
+                              label: const Text('Edit Profile'),
+                            )
+                          : _isFollowing
+                              ? OutlinedButton(
+                                  onPressed: _isFollowingLoading ? null : _toggleFollow,
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                    ),
+                                  ),
+                                  child: _isFollowingLoading
+                                      ? SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context).colorScheme.primary,
+                                            ),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Following',
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                        ),
+                                )
+                              : ElevatedButton(
+                                  onPressed: _isFollowingLoading ? null : _toggleFollow,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                    foregroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary,
+                                  ),
+                                  child: _isFollowingLoading
+                                      ? SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context).colorScheme.onPrimary,
+                                            ),
+                                          ),
+                                        )
+                                      : const Text('Follow'),
+                                ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverAppBar(
+              pinned: true,
+              toolbarHeight: 0,
+              bottom: TabBar(
+                controller: _tabController,
+                labelStyle: AppTextStyles.subheading(context, fontSize: 16),
+                tabs: const [
+                  Tab(text: 'Posts'),
+                  Tab(text: 'Media'),
                 ],
               ),
             ),
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Posts Tab
+            _buildPostsTab(),
+            // Media Tab
+            _buildMediaTab(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPostsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_userPosts.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Text(
+                  _isCurrentUser()
+                      ? 'No posts yet. Start sharing!'
+                      : 'No posts from this user',
+                  style: AppTextStyles.body(
+                    context,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _userPosts.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: FeedPost(post: _userPosts[index]),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMediaTab() {
+    final mediaPosts = _userPosts.where((post) => post.allMedia.isNotEmpty).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (mediaPosts.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Text(
+                  _isCurrentUser()
+                      ? 'No media posts yet'
+                      : 'No media posts from this user',
+                  style: AppTextStyles.body(
+                    context,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: mediaPosts.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: FeedPost(post: mediaPosts[index]),
+                );
+              },
+            ),
+        ],
       ),
     );
   }

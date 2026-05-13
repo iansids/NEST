@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:nest/core/typography/app_text_styles.dart';
 import 'package:nest/core/models/post_model.dart';
+import '../../profile/screens/profile_screen.dart';
 import 'image_carousel.dart';
 
 /// Feed post card
@@ -78,36 +79,47 @@ class _FeedPostState extends State<FeedPost> {
                 child: Row(
                   children: [
                     // Avatar
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                      child: userAvatar.isNotEmpty
-                          ? ClipOval(
-                              child: Image.network(
-                                userAvatar,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.person,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                    size: 20,
-                                  );
-                                },
-                              ),
-                            )
-                          : Icon(
-                              Icons.person,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                              size: 20,
+                    InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ProfileScreen(
+                              userId: widget.post.userId,
                             ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                        ),
+                        child: userAvatar.isNotEmpty
+                            ? ClipOval(
+                                child: Image.network(
+                                  userAvatar,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.person,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimaryContainer,
+                                      size: 20,
+                                    );
+                                  },
+                                ),
+                              )
+                            : Icon(
+                                Icons.person,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                                size: 20,
+                              ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     // User name and timestamp
@@ -115,11 +127,22 @@ class _FeedPostState extends State<FeedPost> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            userName,
-                            style: AppTextStyles.subheading(
-                              context,
-                              fontSize: 14,
+                          InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ProfileScreen(
+                                    userId: widget.post.userId,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              userName,
+                              style: AppTextStyles.subheading(
+                                context,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                           Text(

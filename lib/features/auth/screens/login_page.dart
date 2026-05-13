@@ -4,6 +4,7 @@ import '../widgets/login_form.dart';
 import '../widgets/divider_text.dart';
 import '../widgets/social_login_button.dart';
 import '../../../core/typography/app_text_styles.dart';
+import '../../../core/services/auth_service.dart';
 import 'signup_page.dart'; // Import the signup page
 
 /// Login page - Main authentication screen
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String _email = '';
   String _password = ''; // Added state for password
+  final _authService = AuthService();
 
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
@@ -59,10 +61,32 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _handleGoogleLogin() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Google login - Coming soon')));
+  Future<void> _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final error = await _authService.signInWithGoogle();
+
+      if (error != null && error != 'Sign-in cancelled') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)),
+          );
+        }
+      }
+      // If no error, the StreamBuilder in main.dart will automatically
+      // redirect to DashboardScreen when it detects the user is logged in
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void _handleForgotPassword() {
@@ -140,6 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                 SocialLoginButton(
                   imageAsset: 'resources/google_icon.webp',
                   isImageOnly: true,
+                  isLoading: _isLoading,
                   onPressed: _handleGoogleLogin,
                 ),
                 const SizedBox(height: 16),

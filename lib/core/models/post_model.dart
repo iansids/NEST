@@ -9,6 +9,7 @@ class Post {
   final DateTime timestamp;
   final int likesCount;
   final int commentsCount;
+  final List<String> likedBy;
 
   Post({
     required this.postId,
@@ -19,6 +20,7 @@ class Post {
     required this.timestamp,
     required this.likesCount,
     required this.commentsCount,
+    this.likedBy = const [],
   });
 
   bool get hasMedia => mediaUrl != null && mediaUrl!.isNotEmpty;
@@ -38,6 +40,7 @@ class Post {
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       likesCount: map['likes_count'] ?? 0,
       commentsCount: map['comments_count'] ?? 0,
+      likedBy: List<String>.from(map['liked_by'] ?? []),
     );
   }
 
@@ -50,6 +53,7 @@ class Post {
       'timestamp': FieldValue.serverTimestamp(),
       'likes_count': likesCount,
       'comments_count': commentsCount,
+      'liked_by': likedBy,
     };
   }
 }

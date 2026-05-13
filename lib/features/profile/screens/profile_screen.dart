@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'dart:io';
 import 'dart:async';
 import '../../../core/models/post_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/typography/app_text_styles.dart';
-import '../../../core/services/cloudinary_service.dart';
 import '../../dashboard/widgets/feed_post.dart';
+import 'edit_profile_screen.dart';
 
 /// Profile screen to display user information and their posts
 class ProfileScreen extends StatefulWidget {
@@ -21,7 +18,8 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen>
+    with TickerProviderStateMixin {
   late String _viewingUserId;
   UserModel? _user;
   List<Post> _userPosts = [];
@@ -55,16 +53,32 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         _user = UserModel.fromMap(userDoc.data() ?? {});
       }
 
-      // Load user's posts
-      final postsSnapshot = await FirebaseFirestore.instance
-          .collection('tbl_posts')
-          .where('user_id', isEqualTo: _viewingUserId)
-          .orderBy('timestamp', descending: true)
-          .get();
+      // Load user's posts with better error handling
+      try {
+        final postsSnapshot = await FirebaseFirestore.instance
+            .collection('tbl_posts')
+            .where('user_id', isEqualTo: _viewingUserId)
+            .orderBy('timestamp', descending: true)
+            .get();
 
-      _userPosts = postsSnapshot.docs
-          .map((doc) => Post.fromMap(doc.data(), doc.id))
-          .toList();
+        _userPosts = postsSnapshot.docs
+            .map((doc) => Post.fromMap(doc.data(), doc.id))
+            .toList();
+      } catch (e) {
+        // Fallback: if index issue, fetch all posts and filter locally
+        print('Error fetching posts with index: $e');
+        final allPostsSnapshot = await FirebaseFirestore.instance
+            .collection('tbl_posts')
+            .get();
+
+        _userPosts = allPostsSnapshot.docs
+            .where((doc) => doc.data()['user_id'] == _viewingUserId)
+            .map((doc) => Post.fromMap(doc.data(), doc.id))
+            .toList();
+
+        // Sort locally by timestamp
+        _userPosts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      }
 
       // Check if current user is following this user (if viewing different user)
       if (_isCurrentUser() == false) {
@@ -86,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         setState(() => _isLoading = false);
       }
     } catch (e) {
+      print('Error loading profile data: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -189,134 +204,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         setState(() => _isFollowingLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  Future<void> _pickAndUploadProfileImage() async {
-    final picker = ImagePicker();
-    try {
-      final XFile? pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        final File imageFile = File(pickedFile.path);
-        final int fileSizeInMB = await imageFile.length() ~/ (1024 * 1024);
-
-        if (fileSizeInMB > 25) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Image size must be less than 25 MB'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          return;
-        }
-
-        await _cropAndUploadImage(pickedFile.path);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking image: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _cropAndUploadImage(String imagePath) async {
-    try {
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: imagePath,
-        compressFormat: ImageCompressFormat.jpg,
-        compressQuality: 100,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Profile Picture',
-            toolbarColor: Theme.of(context).colorScheme.primary,
-            toolbarWidgetColor: Colors.white,
-            lockAspectRatio: true,
-            aspectRatioPresets: [CropAspectRatioPreset.square],
-          ),
-          IOSUiSettings(
-            title: 'Crop Profile Picture',
-            aspectRatioPresets: [CropAspectRatioPreset.square],
-          ),
-        ],
-      );
-
-      if (croppedFile != null && mounted) {
-        // Show loading indicator
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Uploading profile picture...')),
-        );
-
-        // Upload to Cloudinary
-        final imageUrl = await CloudinaryService().uploadImage(
-          croppedFile.path,
-        );
-
-        if (imageUrl != null) {
-          // Update Firestore with new profile picture URL
-          await FirebaseFirestore.instance
-              .collection('tbl_users')
-              .doc(_viewingUserId)
-              .update({'profile_picture': imageUrl});
-
-          // Update local state
-          if (mounted) {
-            setState(() {
-              if (_user != null) {
-                _user = UserModel(
-                  userId: _user!.userId,
-                  firstName: _user!.firstName,
-                  lastName: _user!.lastName,
-                  email: _user!.email,
-                  username: _user!.username,
-                  profilePicture: imageUrl,
-                  bio: _user!.bio,
-                  dateOfBirth: _user!.dateOfBirth,
-                  followersCount: _user!.followersCount,
-                  followingCount: _user!.followingCount,
-                );
-              }
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Profile picture updated!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Failed to upload profile picture'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error uploading image: $e'),
-            backgroundColor: Colors.red,
-          ),
         );
       }
     }
@@ -458,65 +345,83 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                               style: TextButton.styleFrom(
                                 backgroundColor: Theme.of(
                                   context,
-                                ).colorScheme.primary.withOpacity(0.12),
+                                ).colorScheme.primary.withValues(alpha: 0.12),
                               ),
-                              onPressed: _pickAndUploadProfileImage,
+                              onPressed: () async {
+                                final updated = await Navigator.of(context).push<UserModel>(
+                                  MaterialPageRoute(
+                                    builder: (_) => EditProfileScreen(user: _user!),
+                                  ),
+                                );
+                                if (updated != null) {
+                                  setState(() => _user = updated);
+                                  _loadProfileData();
+                                }
+                              },
                               icon: const Icon(Icons.edit),
                               label: const Text('Edit Profile'),
                             )
                           : _isFollowing
-                              ? OutlinedButton(
-                                  onPressed: _isFollowingLoading ? null : _toggleFollow,
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
-                                    ),
-                                  ),
-                                  child: _isFollowingLoading
-                                      ? SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                              Theme.of(context).colorScheme.primary,
-                                            ),
-                                          ),
-                                        )
-                                      : Text(
-                                          'Following',
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                          ),
-                                        ),
-                                )
-                              : ElevatedButton(
-                                  onPressed: _isFollowingLoading ? null : _toggleFollow,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .primary,
-                                    foregroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimary,
-                                  ),
-                                  child: _isFollowingLoading
-                                      ? SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(
-                                              Theme.of(context).colorScheme.onPrimary,
-                                            ),
-                                          ),
-                                        )
-                                      : const Text('Follow'),
+                          ? OutlinedButton(
+                              onPressed: _isFollowingLoading
+                                  ? null
+                                  : _toggleFollow,
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
+                              ),
+                              child: _isFollowingLoading
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                            ),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Following',
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                    ),
+                            )
+                          : ElevatedButton(
+                              onPressed: _isFollowingLoading
+                                  ? null
+                                  : _toggleFollow,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
+                              ),
+                              child: _isFollowingLoading
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
+                                            ),
+                                      ),
+                                    )
+                                  : const Text('Follow'),
+                            ),
                     ),
                   ],
                 ),
@@ -550,80 +455,66 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   Widget _buildPostsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_userPosts.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Text(
-                  _isCurrentUser()
-                      ? 'No posts yet. Start sharing!'
-                      : 'No posts from this user',
-                  style: AppTextStyles.body(
-                    context,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _userPosts.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: FeedPost(post: _userPosts[index]),
-                );
-              },
+    if (_userPosts.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Text(
+            _isCurrentUser()
+                ? 'No posts yet. Start sharing!'
+                : 'No posts from this user',
+            style: AppTextStyles.body(
+              context,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-        ],
-      ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _userPosts.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: FeedPost(post: _userPosts[index]),
+        );
+      },
     );
   }
 
   Widget _buildMediaTab() {
-    final mediaPosts = _userPosts.where((post) => post.allMedia.isNotEmpty).toList();
+    final mediaPosts = _userPosts
+        .where((post) => post.allMedia.isNotEmpty)
+        .toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (mediaPosts.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Text(
-                  _isCurrentUser()
-                      ? 'No media posts yet'
-                      : 'No media posts from this user',
-                  style: AppTextStyles.body(
-                    context,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: mediaPosts.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: FeedPost(post: mediaPosts[index]),
-                );
-              },
+    if (mediaPosts.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Text(
+            _isCurrentUser()
+                ? 'No media posts yet'
+                : 'No media posts from this user',
+            style: AppTextStyles.body(
+              context,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-        ],
-      ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: mediaPosts.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: FeedPost(post: mediaPosts[index]),
+        );
+      },
     );
   }
 }

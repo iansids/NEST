@@ -110,7 +110,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       // Upload images to Cloudinary if selected
       List<String> mediaUrls = [];
       for (final imagePath in _selectedImagePaths) {
-        final mediaUrl = await CloudinaryService().uploadImage(imagePath);
+        final mediaUrl = await CloudinaryService().uploadImage(imagePath, folder: 'nest_app/posts');
         if (mediaUrl != null) {
           mediaUrls.add(mediaUrl);
         }

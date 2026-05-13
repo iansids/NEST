@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'package:nest/core/typography/app_text_styles.dart';
 import 'package:nest/core/models/post_model.dart';
 import '../../profile/screens/profile_screen.dart';
+import '../screens/comments_page.dart';
 import 'image_carousel.dart';
 
 /// Feed post card
@@ -18,11 +21,31 @@ class FeedPost extends StatefulWidget {
 
 class _FeedPostState extends State<FeedPost> {
   late Future<Map<String, dynamic>> _userDataFuture;
+  bool _isLiked = false;
+  bool _isLikeLoading = false;
+  int _likesCount = 0;
+  int _commentsCount = 0;
+  StreamSubscription? _likeStreamSubscription;
+  StreamSubscription? _commentStreamSubscription;
 
   @override
   void initState() {
     super.initState();
     _userDataFuture = _fetchUserData();
+    _likesCount = widget.post.likesCount;
+    _commentsCount = widget.post.commentsCount;
+    _isLiked = widget.post.likedBy.contains(
+      FirebaseAuth.instance.currentUser?.uid,
+    );
+    _listenToLikes();
+    _listenToComments();
+  }
+
+  @override
+  void dispose() {
+    _likeStreamSubscription?.cancel();
+    _commentStreamSubscription?.cancel();
+    super.dispose();
   }
 
   Future<Map<String, dynamic>> _fetchUserData() async {
@@ -46,6 +69,89 @@ class _FeedPostState extends State<FeedPost> {
     if (difference.inHours < 24) return '${difference.inHours}h ago';
     if (difference.inDays < 7) return '${difference.inDays}d ago';
     return '${timestamp.month}/${timestamp.day}';
+  }
+
+  void _listenToLikes() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    // Listen to the post document for changes to liked_by array
+    _likeStreamSubscription = FirebaseFirestore.instance
+        .collection('tbl_posts')
+        .doc(widget.post.postId)
+        .snapshots()
+        .listen((snapshot) {
+          if (mounted && !_isLikeLoading) {
+            final likedBy = List<String>.from(
+              snapshot.data()?['liked_by'] ?? [],
+            );
+            final likesCount = snapshot.data()?['likes_count'] ?? 0;
+            setState(() {
+              _isLiked = likedBy.contains(currentUser.uid);
+              _likesCount = likesCount;
+            });
+          }
+        });
+  }
+
+  void _listenToComments() {
+    // Listen to comments count changes
+    _commentStreamSubscription = FirebaseFirestore.instance
+        .collection('tbl_posts')
+        .doc(widget.post.postId)
+        .snapshots()
+        .listen((snapshot) {
+          if (mounted) {
+            final commentsCount = snapshot.data()?['comments_count'] ?? 0;
+            setState(() {
+              _commentsCount = commentsCount;
+            });
+          }
+        });
+  }
+
+  Future<void> _toggleLike() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || _isLikeLoading) return;
+
+    // Set loading state to prevent listener from interfering
+    setState(() => _isLikeLoading = true);
+
+    try {
+      final postRef = FirebaseFirestore.instance
+          .collection('tbl_posts')
+          .doc(widget.post.postId);
+
+      if (_isLiked) {
+        // Unlike
+        await postRef.update({
+          'liked_by': FieldValue.arrayRemove([currentUser.uid]),
+          'likes_count': FieldValue.increment(-1),
+        });
+      } else {
+        // Like
+        await postRef.update({
+          'liked_by': FieldValue.arrayUnion([currentUser.uid]),
+          'likes_count': FieldValue.increment(1),
+        });
+      }
+
+      // Update local state immediately
+      if (mounted) {
+        setState(() {
+          _isLiked = !_isLiked;
+          _likesCount = _isLiked ? _likesCount + 1 : _likesCount - 1;
+          _isLikeLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLikeLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -83,9 +189,8 @@ class _FeedPostState extends State<FeedPost> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => ProfileScreen(
-                              userId: widget.post.userId,
-                            ),
+                            builder: (context) =>
+                                ProfileScreen(userId: widget.post.userId),
                           ),
                         );
                       },
@@ -131,9 +236,8 @@ class _FeedPostState extends State<FeedPost> {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => ProfileScreen(
-                                    userId: widget.post.userId,
-                                  ),
+                                  builder: (context) =>
+                                      ProfileScreen(userId: widget.post.userId),
                                 ),
                               );
                             },
@@ -194,20 +298,83 @@ class _FeedPostState extends State<FeedPost> {
                 ),
                 child: Row(
                   children: [
-                    _ActionButton(
-                      icon: Icons.favorite_outline,
-                      label: widget.post.likesCount > 0
-                          ? '${widget.post.likesCount}'
-                          : 'Like',
-                      onPressed: () {},
+                    // Like button with loading state
+                    InkWell(
+                      onTap: _isLikeLoading ? null : _toggleLike,
+                      child: Row(
+                        children: [
+                          if (_isLikeLoading)
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            )
+                          else
+                            Icon(
+                              _isLiked
+                                  ? Icons.favorite
+                                  : Icons.favorite_outline,
+                              size: 18,
+                              color: _isLiked
+                                  ? Colors.red
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                            ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _likesCount > 0 ? '$_likesCount' : 'Like',
+                            style: AppTextStyles.body(
+                              context,
+                              fontSize: 14,
+                              color: _isLiked
+                                  ? Colors.red
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(width: 24),
-                    _ActionButton(
-                      icon: Icons.comment_outlined,
-                      label: widget.post.commentsCount > 0
-                          ? '${widget.post.commentsCount}'
-                          : 'Comment',
-                      onPressed: () {},
+                    // Comment button
+                    InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CommentsPage(post: widget.post),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.comment_outlined,
+                            size: 18,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _commentsCount > 0 ? '$_commentsCount' : 'Comment',
+                            style: AppTextStyles.body(
+                              context,
+                              fontSize: 14,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -216,44 +383,6 @@ class _FeedPostState extends State<FeedPost> {
           ),
         );
       },
-    );
-  }
-}
-
-/// Reusable action button for post interactions
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: AppTextStyles.body(
-              context,
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

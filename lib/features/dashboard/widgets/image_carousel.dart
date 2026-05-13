@@ -43,10 +43,8 @@ class _ImageCarouselState extends State<ImageCarousel>
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
-        errorBuilder: (_, _, _) => _ErrorPlaceholder(
-          message: 'Image failed to load',
-          showIcon: true,
-        ),
+        errorBuilder: (_, _, _) =>
+            _ErrorPlaceholder(message: 'Image failed to load', showIcon: true),
       );
     }
     return Image.asset(
@@ -100,19 +98,33 @@ class _ImageCarouselState extends State<ImageCarousel>
 
   @override
   Widget build(BuildContext context) {
-    final slideIn = Tween<Offset>(
-      begin: _isMovingForward ? const Offset(1, 0) : const Offset(-1, 0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+    // For single images, show simplified UI without carousel animations
+    if (widget.images.length == 1) {
+      return GestureDetector(
+        onTap: _openPreview,
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: _buildImage(widget.images[0]),
+        ),
+      );
+    }
 
-    final slideOut = Tween<Offset>(
-      begin: Offset.zero,
-      end: _isMovingForward ? const Offset(-1, 0) : const Offset(1, 0),
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
+    // For multiple images, use carousel with animations
+    final slideIn =
+        Tween<Offset>(
+          begin: _isMovingForward ? const Offset(1, 0) : const Offset(-1, 0),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
+
+    final slideOut =
+        Tween<Offset>(
+          begin: Offset.zero,
+          end: _isMovingForward ? const Offset(-1, 0) : const Offset(1, 0),
+        ).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
     return Column(
       children: [
@@ -133,84 +145,81 @@ class _ImageCarouselState extends State<ImageCarousel>
                   position: slideIn,
                   child: _buildImage(widget.images[_currentIndex]),
                 ),
-                if (widget.images.length > 1)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_currentIndex + 1}/${widget.images.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${_currentIndex + 1}/${widget.images.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
+                ),
               ],
             ),
           ),
         ),
-        if (widget.images.length > 1) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: _currentIndex > 0 ? _previousImage : null,
-                child: Icon(
-                  Icons.chevron_left,
-                  size: 24,
-                  color: _currentIndex > 0
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : Theme.of(context).colorScheme.outlineVariant,
-                ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: _currentIndex > 0 ? _previousImage : null,
+              child: Icon(
+                Icons.chevron_left,
+                size: 24,
+                color: _currentIndex > 0
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(context).colorScheme.outlineVariant,
               ),
-              const SizedBox(width: 8),
-              Row(
-                children: List.generate(
-                  widget.images.length,
-                  (index) => GestureDetector(
-                    onTap: () => _goTo(index),
-                    child: Container(
-                      width: _currentIndex == index ? 8 : 6,
-                      height: _currentIndex == index ? 8 : 6,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentIndex == index
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.outlineVariant,
-                      ),
+            ),
+            const SizedBox(width: 8),
+            Row(
+              children: List.generate(
+                widget.images.length,
+                (index) => GestureDetector(
+                  onTap: () => _goTo(index),
+                  child: Container(
+                    width: _currentIndex == index ? 8 : 6,
+                    height: _currentIndex == index ? 8 : 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentIndex == index
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outlineVariant,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _currentIndex < widget.images.length - 1
-                    ? _nextImage
-                    : null,
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 24,
-                  color: _currentIndex < widget.images.length - 1
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : Theme.of(context).colorScheme.outlineVariant,
-                ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: _currentIndex < widget.images.length - 1
+                  ? _nextImage
+                  : null,
+              child: Icon(
+                Icons.chevron_right,
+                size: 24,
+                color: _currentIndex < widget.images.length - 1
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(context).colorScheme.outlineVariant,
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -224,10 +233,7 @@ class _ImagePreviewPage extends StatefulWidget {
   final List<String> images;
   final int initialIndex;
 
-  const _ImagePreviewPage({
-    required this.images,
-    required this.initialIndex,
-  });
+  const _ImagePreviewPage({required this.images, required this.initialIndex});
 
   @override
   State<_ImagePreviewPage> createState() => _ImagePreviewPageState();
@@ -345,7 +351,11 @@ class _PreviewError extends StatelessWidget {
     return const Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.image_not_supported_outlined, size: 40, color: Colors.white54),
+        Icon(
+          Icons.image_not_supported_outlined,
+          size: 40,
+          color: Colors.white54,
+        ),
         SizedBox(height: 8),
         Text(
           'Image failed to load',

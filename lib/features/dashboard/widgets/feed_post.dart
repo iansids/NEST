@@ -67,6 +67,7 @@ class _FeedPostState extends State<FeedPost> {
             ),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // User header
               Padding(
@@ -85,18 +86,20 @@ class _FeedPostState extends State<FeedPost> {
                         color: Theme.of(context).colorScheme.primaryContainer,
                       ),
                       child: userAvatar.isNotEmpty
-                          ? Image.asset(
-                              userAvatar,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.person,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                  size: 20,
-                                );
-                              },
+                          ? ClipOval(
+                              child: Image.network(
+                                userAvatar,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.person,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                    size: 20,
+                                  );
+                                },
+                              ),
                             )
                           : Icon(
                               Icons.person,
@@ -153,10 +156,10 @@ class _FeedPostState extends State<FeedPost> {
               ),
               const SizedBox(height: 12),
               // Image carousel (if exists)
-              if (widget.post.hasMedia) ...[
+              if (widget.post.allMedia.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ImageCarousel(images: [widget.post.mediaUrl!]),
+                  child: ImageCarousel(images: widget.post.allMedia),
                 ),
                 const SizedBox(height: 12),
               ],

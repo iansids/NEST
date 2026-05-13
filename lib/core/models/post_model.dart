@@ -5,6 +5,7 @@ class Post {
   final String userId;
   final String content;
   final String? mediaUrl;
+  final List<String> mediaUrls;
   final DateTime timestamp;
   final int likesCount;
   final int commentsCount;
@@ -14,12 +15,18 @@ class Post {
     required this.userId,
     required this.content,
     this.mediaUrl,
+    this.mediaUrls = const [],
     required this.timestamp,
     required this.likesCount,
     required this.commentsCount,
   });
 
   bool get hasMedia => mediaUrl != null && mediaUrl!.isNotEmpty;
+  List<String> get allMedia {
+    if (mediaUrls.isNotEmpty) return mediaUrls;
+    if (mediaUrl != null && mediaUrl!.isNotEmpty) return [mediaUrl!];
+    return [];
+  }
 
   factory Post.fromMap(Map<String, dynamic> map, String documentId) {
     return Post(
@@ -27,6 +34,7 @@ class Post {
       userId: map['user_id'] ?? '',
       content: map['content'] ?? '',
       mediaUrl: map['media_url'],
+      mediaUrls: List<String>.from(map['media_urls'] ?? []),
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       likesCount: map['likes_count'] ?? 0,
       commentsCount: map['comments_count'] ?? 0,
@@ -38,6 +46,7 @@ class Post {
       'user_id': userId,
       'content': content,
       'media_url': mediaUrl,
+      'media_urls': mediaUrls,
       'timestamp': FieldValue.serverTimestamp(),
       'likes_count': likesCount,
       'comments_count': commentsCount,

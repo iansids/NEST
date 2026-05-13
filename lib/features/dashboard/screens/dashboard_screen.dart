@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/post_model.dart';
 import '../../../core/typography/app_text_styles.dart';
+import '../../../core/services/firestore_service.dart';
 import '../widgets/feed_post.dart';
+import '../widgets/skeleton_feed.dart';
 import 'create_post_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,7 +18,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late List<Post> _posts;
   String? _username;
   String? _fullName;
   String? _profilePicture;
@@ -24,7 +25,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeMockPosts();
     _loadUsername();
   }
 
@@ -59,48 +59,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     }
-  }
-
-  void _initializeMockPosts() {
-    _posts = [
-      Post(
-        postId: '1',
-        userId: 'user1',
-        content:
-            'Just launched my new Flutter project! Really excited about the modular architecture we\'ve built. #flutter #development',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        likesCount: 128,
-        commentsCount: 24,
-      ),
-      Post(
-        postId: '2',
-        userId: 'user2',
-        content:
-            'Beautiful sunset at the beach today. Nothing beats a good walk by the ocean! 🌅',
-        mediaUrl: 'resources/LOGO.png',
-        timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-        likesCount: 456,
-        commentsCount: 89,
-      ),
-      Post(
-        postId: '3',
-        userId: 'user3',
-        content:
-            'Top 5 Flutter best practices for building scalable apps:\n1. Use proper state management\n2. Create reusable widgets\n3. Keep business logic separate\n4. Follow consistent naming conventions\n5. Write tests!',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        likesCount: 892,
-        commentsCount: 156,
-      ),
-      Post(
-        postId: '4',
-        userId: 'user4',
-        content: 'Check out my latest photo!',
-        mediaUrl: 'resources/ICON.png',
-        timestamp: DateTime.now().subtract(const Duration(hours: 6)),
-        likesCount: 234,
-        commentsCount: 45,
-      ),
-    ];
   }
 
   void _handleCreatePost() {
@@ -228,83 +186,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: ListView(
         children: [
-          // Post creation button (looks like text box)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  width: 1,
+          // Post creation bar — skeleton until user data is ready
+          if (_username == null)
+            const CreatePostSkeleton()
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 1,
+                  ),
                 ),
               ),
-            ),
-            child: Row(
-              children: [
-                // User avatar placeholder
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  child: _profilePicture != null
-                      ? ClipOval(
-                          child: Image.network(
-                            _profilePicture!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
-                              Icons.person,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                              size: 20,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    child: _profilePicture != null
+                        ? ClipOval(
+                            child: Image.network(
+                              _profilePicture!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Icon(
+                                Icons.person,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                                size: 20,
+                              ),
                             ),
+                          )
+                        : Icon(
+                            Icons.person,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                            size: 20,
                           ),
-                        )
-                      : Icon(
-                          Icons.person,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _handleCreatePost,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                ),
-                const SizedBox(width: 12),
-                // Text input button
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _handleCreatePost,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline,
-                          width: 1,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          color: Theme.of(context).colorScheme.surface,
                         ),
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                      child: Text(
-                        "What's on your mind?",
-                        style: AppTextStyles.body(
-                          context,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        child: Text(
+                          "What's on your mind?",
+                          style: AppTextStyles.body(
+                            context,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 8),
           // Feed posts
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _posts.length,
-            itemBuilder: (context, index) {
-              return FeedPost(post: _posts[index]);
+          StreamBuilder<List<Post>>(
+            stream: FirestoreService().streamPosts(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Column(
+                  children: List.generate(4, (_) => const FeedPostSkeleton()),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Container(
+                  height: 100,
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Error loading posts',
+                    style: AppTextStyles.body(context),
+                  ),
+                );
+              }
+
+              final posts = snapshot.data ?? [];
+
+              if (posts.isEmpty) {
+                return Container(
+                  height: 100,
+                  alignment: Alignment.center,
+                  child: Text(
+                    'No posts yet. Be the first to share!',
+                    style: AppTextStyles.body(context),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  return FeedPost(post: posts[index]);
+                },
+              );
             },
           ),
         ],

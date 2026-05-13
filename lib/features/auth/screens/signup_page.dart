@@ -201,6 +201,8 @@ class _SignupPageState extends State<SignupPage> {
           .doc(newUser.userId)
           .set(newUser.toMap());
 
+      await FirebaseAuth.instance.signOut();
+
       if (mounted) {
         ScaffoldMessenger.of(
           context,

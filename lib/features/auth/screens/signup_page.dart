@@ -19,17 +19,14 @@ class _SignupPageState extends State<SignupPage> {
   int _currentStep = 1;
   bool _isLoading = false;
 
-  // Step 1 Controllers
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   DateTime? _dateOfBirth;
 
-  // Step 2 Controllers
   final _usernameController = TextEditingController();
   String? _profileImagePath;
 
-  // Password Controller
   final _passwordController = TextEditingController();
 
   @override
@@ -73,7 +70,6 @@ class _SignupPageState extends State<SignupPage> {
           return;
         }
 
-        // Crop the image
         await _cropImage(pickedFile.path);
       }
     } catch (e) {
@@ -156,14 +152,12 @@ class _SignupPageState extends State<SignupPage> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Create auth user with email & password in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
 
-      // 2. Upload profile image to Cloudinary if provided
       String? profilePictureUrl;
       if (_profileImagePath != null) {
         profilePictureUrl = await CloudinaryService().uploadImage(
@@ -178,11 +172,9 @@ class _SignupPageState extends State<SignupPage> {
               ),
             );
           }
-          // Continue without profile picture
         }
       }
 
-      // 3. Create the UserModel with Cloudinary URL
       final newUser = UserModel(
         userId: userCredential.user!.uid,
         firstName: _firstNameController.text.trim(),
@@ -190,12 +182,11 @@ class _SignupPageState extends State<SignupPage> {
         email: _emailController.text.trim(),
         username: '@${_usernameController.text.trim()}',
         dateOfBirth: _dateOfBirth,
-        profilePicture: profilePictureUrl, // Store Cloudinary URL
+        profilePicture: profilePictureUrl,
         followersCount: 0,
         followingCount: 0,
       );
 
-      // 4. Save the new UserModel to 'tbl_users' in Firestore
       await FirebaseFirestore.instance
           .collection('tbl_users')
           .doc(newUser.userId)
@@ -244,8 +235,6 @@ class _SignupPageState extends State<SignupPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // ============ HEADER SECTION ============
-                // NEST Logo
                 SizedBox(
                   height: 80,
                   child: Image.asset(
@@ -265,7 +254,6 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Step Indicator
                 Text(
                   'Step $_currentStep of 2',
                   textAlign: TextAlign.center,
@@ -277,7 +265,6 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 const SizedBox(height: 8),
 
-                // Step Title
                 Text(
                   _getStepTitle(),
                   textAlign: TextAlign.center,
@@ -285,7 +272,6 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // ============ FORM SECTION ============
                 if (_currentStep == 1) ...[
                   _buildStep1Form(),
                 ] else if (_currentStep == 2) ...[
@@ -294,11 +280,9 @@ class _SignupPageState extends State<SignupPage> {
 
                 const SizedBox(height: 40),
 
-                // ============ BUTTON SECTION ============
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back Button (only on page 2)
                     if (_currentStep > 1)
                       ElevatedButton.icon(
                         onPressed: () => setState(() => _currentStep--),
@@ -323,9 +307,8 @@ class _SignupPageState extends State<SignupPage> {
                         icon: const Icon(Icons.arrow_back, size: 18),
                         label: const Text('Back'),
                       ),
-                    // Spacer to push next button to right on page 1
+
                     if (_currentStep == 1) const Spacer(),
-                    // Next Button
                     ElevatedButton.icon(
                       onPressed: _isLoading ? null : _handleNextStep,
                       style: ElevatedButton.styleFrom(
@@ -359,7 +342,6 @@ class _SignupPageState extends State<SignupPage> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                // Back to Login
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -492,7 +474,6 @@ class _SignupPageState extends State<SignupPage> {
         const SizedBox(height: 8),
         Row(
           children: [
-            // Non-editable @ prefix
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
@@ -509,7 +490,6 @@ class _SignupPageState extends State<SignupPage> {
                 style: AppTextStyles.body(context, fontSize: 16),
               ),
             ),
-            // Editable username field
             Expanded(
               child: TextFormField(
                 controller: _usernameController,

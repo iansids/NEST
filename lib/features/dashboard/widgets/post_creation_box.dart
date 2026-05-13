@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/typography/app_text_styles.dart';
 
-/// Facebook-style post creation box
-/// Always visible at top of feed with text input and image attachment
+
 class PostCreationBox extends StatefulWidget {
   final VoidCallback? onCreatePost;
   final VoidCallback? onAttachImage;
@@ -63,10 +62,8 @@ class _PostCreationBoxState extends State<PostCreationBox> {
       ),
       child: Column(
         children: [
-          // Text input row
           Row(
             children: [
-              // User avatar placeholder
               Container(
                 width: 40,
                 height: 40,
@@ -81,7 +78,6 @@ class _PostCreationBoxState extends State<PostCreationBox> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Text input field
               Expanded(
                 child: TextField(
                   controller: _textController,
@@ -107,7 +103,6 @@ class _PostCreationBoxState extends State<PostCreationBox> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Attach image button
               Row(
                 children: [
                   IconButton(

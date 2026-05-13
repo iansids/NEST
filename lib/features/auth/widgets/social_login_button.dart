@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/typography/app_text_styles.dart';
 
-/// Reusable social login button
-/// Supports text+icon style or image-only style (for Google, Apple, etc.)
 class SocialLoginButton extends StatelessWidget {
   final String? label;
   final IconData? icon;
@@ -25,7 +23,6 @@ class SocialLoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Image-only button (for Google, Apple icons)
     if (isImageOnly && imageAsset != null) {
       return SizedBox(
         width: 56,
@@ -62,7 +59,6 @@ class SocialLoginButton extends StatelessWidget {
       );
     }
 
-    // Text + Icon button (traditional style)
     return SizedBox(
       width: double.infinity,
       height: 56,

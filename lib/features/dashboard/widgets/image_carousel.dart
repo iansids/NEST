@@ -98,7 +98,6 @@ class _ImageCarouselState extends State<ImageCarousel>
 
   @override
   Widget build(BuildContext context) {
-    // For single images, show simplified UI without carousel animations
     if (widget.images.length == 1) {
       return GestureDetector(
         onTap: _openPreview,
@@ -109,7 +108,6 @@ class _ImageCarouselState extends State<ImageCarousel>
       );
     }
 
-    // For multiple images, use carousel with animations
     final slideIn =
         Tween<Offset>(
           begin: _isMovingForward ? const Offset(1, 0) : const Offset(-1, 0),
@@ -225,9 +223,6 @@ class _ImageCarouselState extends State<ImageCarousel>
   }
 }
 
-// ---------------------------------------------------------------------------
-// Full-screen image preview with swipe navigation and pinch-to-zoom
-// ---------------------------------------------------------------------------
 
 class _ImagePreviewPage extends StatefulWidget {
   final List<String> images;
@@ -366,9 +361,6 @@ class _PreviewError extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Carousel error placeholder
-// ---------------------------------------------------------------------------
 
 class _ErrorPlaceholder extends StatelessWidget {
   final String message;

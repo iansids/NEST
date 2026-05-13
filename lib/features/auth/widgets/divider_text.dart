@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/typography/app_text_styles.dart';
 
-/// Divider with centered text
-/// Used for "Or continue with" sections
+
 class DividerText extends StatelessWidget {
   final String text;
 

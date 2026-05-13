@@ -8,8 +8,6 @@ import '../../profile/screens/profile_screen.dart';
 import '../screens/comments_page.dart';
 import 'image_carousel.dart';
 
-/// Feed post card
-/// Displays user info, content, images, and action buttons
 class FeedPost extends StatefulWidget {
   final Post post;
 
@@ -75,7 +73,6 @@ class _FeedPostState extends State<FeedPost> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
-    // Listen to the post document for changes to liked_by array
     _likeStreamSubscription = FirebaseFirestore.instance
         .collection('tbl_posts')
         .doc(widget.post.postId)
@@ -95,7 +92,6 @@ class _FeedPostState extends State<FeedPost> {
   }
 
   void _listenToComments() {
-    // Listen to comments count changes
     _commentStreamSubscription = FirebaseFirestore.instance
         .collection('tbl_posts')
         .doc(widget.post.postId)
@@ -114,7 +110,6 @@ class _FeedPostState extends State<FeedPost> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || _isLikeLoading) return;
 
-    // Set loading state to prevent listener from interfering
     setState(() => _isLikeLoading = true);
 
     try {
@@ -123,20 +118,17 @@ class _FeedPostState extends State<FeedPost> {
           .doc(widget.post.postId);
 
       if (_isLiked) {
-        // Unlike
         await postRef.update({
           'liked_by': FieldValue.arrayRemove([currentUser.uid]),
           'likes_count': FieldValue.increment(-1),
         });
       } else {
-        // Like
         await postRef.update({
           'liked_by': FieldValue.arrayUnion([currentUser.uid]),
           'likes_count': FieldValue.increment(1),
         });
       }
 
-      // Update local state immediately
       if (mounted) {
         setState(() {
           _isLiked = !_isLiked;
@@ -176,7 +168,6 @@ class _FeedPostState extends State<FeedPost> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User header
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -184,7 +175,6 @@ class _FeedPostState extends State<FeedPost> {
                 ),
                 child: Row(
                   children: [
-                    // Avatar
                     InkWell(
                       onTap: () {
                         Navigator.of(context).push(
@@ -227,7 +217,6 @@ class _FeedPostState extends State<FeedPost> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // User name and timestamp
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,7 +260,6 @@ class _FeedPostState extends State<FeedPost> {
                   ],
                 ),
               ),
-              // Post content
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
@@ -282,7 +270,6 @@ class _FeedPostState extends State<FeedPost> {
                 ),
               ),
               const SizedBox(height: 12),
-              // Image carousel (if exists)
               if (widget.post.allMedia.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -298,7 +285,6 @@ class _FeedPostState extends State<FeedPost> {
                 ),
                 child: Row(
                   children: [
-                    // Like button with loading state
                     InkWell(
                       onTap: _isLikeLoading ? null : _toggleLike,
                       child: Row(
@@ -343,7 +329,6 @@ class _FeedPostState extends State<FeedPost> {
                       ),
                     ),
                     const SizedBox(width: 24),
-                    // Comment button
                     InkWell(
                       onTap: () {
                         Navigator.of(context).push(

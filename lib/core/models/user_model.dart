@@ -25,7 +25,6 @@ class UserModel {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
-  // Convert from Database Map (e.g., JSON/Firestore/Supabase) to Object
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       userId: map['user_id'] ?? '',
@@ -46,7 +45,6 @@ class UserModel {
     );
   }
 
-  // Convert Object to Database Map
   Map<String, dynamic> toMap() {
     return {
       'user_id': userId,

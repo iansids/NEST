@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/typography/app_text_styles.dart';
 
-/// Reusable login form with email and password fields
 class LoginForm extends StatefulWidget {
   final ValueChanged<String>? onEmailChanged;
   final ValueChanged<String>? onPasswordChanged;
@@ -65,7 +64,6 @@ class _LoginFormState extends State<LoginForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Email field
         Text(
           'Email or Username',
           style: AppTextStyles.subheading(context, fontSize: 14),
@@ -87,7 +85,6 @@ class _LoginFormState extends State<LoginForm> {
         ),
         const SizedBox(height: 24),
 
-        // Password field
         Text(
           'Password',
           style: AppTextStyles.subheading(context, fontSize: 14),
@@ -119,7 +116,6 @@ class _LoginFormState extends State<LoginForm> {
         ),
         const SizedBox(height: 12),
 
-        // Forgot password link
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
@@ -136,7 +132,6 @@ class _LoginFormState extends State<LoginForm> {
         ),
         const SizedBox(height: 24),
 
-        // Login button
         SizedBox(
           width: double.infinity,
           height: 56,

@@ -81,7 +81,6 @@ class _SkeletonBox extends StatelessWidget {
   }
 }
 
-/// Skeleton card that mirrors the layout of FeedPost
 class FeedPostSkeleton extends StatelessWidget {
   const FeedPostSkeleton({super.key});
 
@@ -102,12 +101,10 @@ class FeedPostSkeleton extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  // Avatar circle
                   const _SkeletonBox(
                     width: 40,
                     height: 40,
@@ -125,7 +122,6 @@ class FeedPostSkeleton extends StatelessWidget {
                 ],
               ),
             ),
-            // Content lines
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -140,7 +136,6 @@ class FeedPostSkeleton extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Action buttons
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
@@ -158,7 +153,6 @@ class FeedPostSkeleton extends StatelessWidget {
   }
 }
 
-/// Skeleton for the create-post bar at the top of the feed
 class CreatePostSkeleton extends StatelessWidget {
   const CreatePostSkeleton({super.key});
 

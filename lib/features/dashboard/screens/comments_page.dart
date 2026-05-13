@@ -50,12 +50,10 @@ class _CommentsPageState extends State<CommentsPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      // Get post reference
       final postRef = FirebaseFirestore.instance
           .collection('tbl_posts')
           .doc(widget.post.postId);
 
-      // Create comment
       await FirebaseFirestore.instance
           .collection('tbl_posts')
           .doc(widget.post.postId)
@@ -67,7 +65,6 @@ class _CommentsPageState extends State<CommentsPage> {
             'timestamp': FieldValue.serverTimestamp(),
           });
 
-      // Increment comment count
       await postRef.update({'comments_count': FieldValue.increment(1)});
 
       _commentController.clear();
@@ -184,12 +181,10 @@ class _CommentsPageState extends State<CommentsPage> {
                                       ),
                               ),
                               const SizedBox(width: 12),
-                              // Comment content
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // User name and time
                                     Row(
                                       children: [
                                         Text(
@@ -212,7 +207,6 @@ class _CommentsPageState extends State<CommentsPage> {
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    // Comment text
                                     Text(
                                       comment.content,
                                       style: AppTextStyles.body(context),
@@ -230,7 +224,6 @@ class _CommentsPageState extends State<CommentsPage> {
               },
             ),
           ),
-          // Comment input box
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(

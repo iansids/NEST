@@ -116,7 +116,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
         }
       }
 
-      // If there are images that failed to upload, show warning but continue
       if (mediaUrls.length < _selectedImagePaths.length && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -136,8 +135,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
         'content': _postController.text.trim(),
         'media_url': mediaUrls.isNotEmpty
             ? mediaUrls.first
-            : null, // Store first image for backwards compatibility
-        'media_urls': mediaUrls, // Store all image URLs
+            : null,
+        'media_urls': mediaUrls,
         'timestamp': FieldValue.serverTimestamp(),
         'likes_count': 0,
         'comments_count': 0,
@@ -294,7 +293,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
         mainAxisAlignment: MainAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Media/Image upload button - Outlined style
           if (_selectedImagePaths.length < _maxImages)
             Container(
               decoration: BoxDecoration(
@@ -320,7 +318,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
             ),
           const SizedBox(width: 12),
-          // Send/Post button - Filled style
           FloatingActionButton.extended(
             onPressed: _isPosting ? null : _handlePost,
             heroTag: 'post',

@@ -1,31 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// Centralized color palette for NEST app
-/// Supports both Light and Dark modes with warm, grounded aesthetic
+
 class AppColors {
   AppColors._(); // Private constructor to prevent instantiation
 
-  // ============ LIGHT MODE ============
-  static const Color lightBackground = Color(0xFFFDFCF8); // Soft Cream
-  static const Color lightSurface = Color(0xFFFFFFFF); // Pure White
-  static const Color lightPrimary = Color(0xFFF28C28); // Sunset Orange
-  static const Color lightSecondary = Color(0xFFE67E22); // Terracotta
-  static const Color lightTextPrimary = Color(0xFF2D2926); // Deep Coffee
-  static const Color lightTextSecondary = Color(0xFF6D675B); // Taupe
-  static const Color lightBorder = Color(0xFFE5E2D9); // Stone
+  static const Color lightBackground = Color(0xFFFDFCF8);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightPrimary = Color(0xFFF28C28);
+  static const Color lightSecondary = Color(0xFFE67E22);
+  static const Color lightTextPrimary = Color(0xFF2D2926);
+  static const Color lightTextSecondary = Color(0xFF6D675B);
+  static const Color lightBorder = Color(0xFFE5E2D9);
 
   // ============ DARK MODE ============
-  static const Color darkBackground = Color(0xFF1A1918); // Warm Charcoal
-  static const Color darkSurface = Color(0xFF252422); // Soft Ebony
-  static const Color darkPrimary = Color(0xFFFFB347); // Pastel Orange
-  static const Color darkSecondary = Color(0xFFF39C12); // Honey
-  static const Color darkTextPrimary = Color(0xFFEEEBE6); // Off-White
-  static const Color darkTextSecondary = Color(0xFFB0A99F); // Warm Grey
-  static const Color darkBorder = Color(0xFF3D3B38); // Deep Stone
+  static const Color darkBackground = Color(0xFF1A1918);
+  static const Color darkSurface = Color(0xFF252422);
+  static const Color darkPrimary = Color(0xFFFFB347);
+  static const Color darkSecondary = Color(0xFFF39C12);
+  static const Color darkTextPrimary = Color(0xFFEEEBE6);
+  static const Color darkTextSecondary = Color(0xFFB0A99F);
+  static const Color darkBorder = Color(0xFF3D3B38);
 
-  // ============ THEME DATA ============
-
-  /// Light theme configuration
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
@@ -70,7 +65,6 @@ class AppColors {
     );
   }
 
-  /// Dark theme configuration
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,

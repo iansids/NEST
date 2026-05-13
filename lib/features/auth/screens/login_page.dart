@@ -5,9 +5,8 @@ import '../widgets/divider_text.dart';
 import '../widgets/social_login_button.dart';
 import '../../../core/typography/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
-import 'signup_page.dart'; // Import the signup page
+import 'signup_page.dart';
 
-/// Login page - Main authentication screen
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -18,22 +17,18 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String _email = '';
-  String _password = ''; // Added state for password
+  String _password = '';
   final _authService = AuthService();
 
   Future<void> _handleLogin() async {
     setState(() => _isLoading = true);
 
     try {
-      // Use Firebase Auth to sign in
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _email.trim(),
         password: _password,
       );
 
-      // We do not need Navigator.pushReplacementNamed anymore
-      // because the StreamBuilder in main.dart handles the navigation automatically
-      // when it detects a successful login state.
 
     } on FirebaseAuthException catch (e) {
       String errorMessage = "Login failed. Please try again.";
@@ -74,8 +69,7 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       }
-      // If no error, the StreamBuilder in main.dart will automatically
-      // redirect to DashboardScreen when it detects the user is logged in
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -105,8 +99,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // ============ HEADER SECTION ============
-                // NEST Logo
+
                 SizedBox(
                   height: 80,
                   child: Image.asset(
@@ -126,7 +119,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // App Name
                 Text(
                   'NEST',
                   textAlign: TextAlign.center,
@@ -138,7 +130,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 12),
 
-                // Tagline
                 Text(
                   'Take flight and find a home',
                   textAlign: TextAlign.center,
@@ -146,21 +137,18 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 40),
 
-                // ============ FORM SECTION ============
                 LoginForm(
                   isLoading: _isLoading,
                   onEmailChanged: (email) => _email = email,
-                  onPasswordChanged: (password) => _password = password, // Capture password
+                  onPasswordChanged: (password) => _password = password,
                   onLoginPressed: _handleLogin,
                   onForgotPassword: _handleForgotPassword,
                 ),
                 const SizedBox(height: 32),
 
-                // ============ DIVIDER SECTION ============
                 const DividerText(),
                 const SizedBox(height: 24),
 
-                // ============ SOCIAL LOGIN SECTION ============
                 SocialLoginButton(
                   imageAsset: 'resources/google_icon.webp',
                   isImageOnly: true,
@@ -169,7 +157,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Sign up link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -179,7 +166,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to the real SignupPage
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const SignupPage(),

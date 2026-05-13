@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Creative loading animation widget
-/// Displays the NEST logo with a pulsing, scaling animation
 class LoadingAnimation extends StatefulWidget {
   final Duration duration;
 
@@ -25,7 +23,6 @@ class _LoadingAnimationState extends State<LoadingAnimation>
   void initState() {
     super.initState();
 
-    // Scale animation: breathe in and out
     _scaleController = AnimationController(
       duration: widget.duration,
       vsync: this,
@@ -35,7 +32,6 @@ class _LoadingAnimationState extends State<LoadingAnimation>
       CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
     );
 
-    // Opacity animation: fade in and out gently
     _opacityController = AnimationController(
       duration: widget.duration,
       vsync: this,
@@ -59,7 +55,6 @@ class _LoadingAnimationState extends State<LoadingAnimation>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated logo with scale and opacity
           AnimatedBuilder(
             animation: Listenable.merge([_scaleAnimation, _opacityAnimation]),
             builder: (context, child) {
@@ -78,7 +73,6 @@ class _LoadingAnimationState extends State<LoadingAnimation>
             ),
           ),
           const SizedBox(height: 40),
-          // Animated dots indicator
           SizedBox(
             height: 20,
             child: Row(
@@ -88,7 +82,6 @@ class _LoadingAnimationState extends State<LoadingAnimation>
                 (index) => AnimatedBuilder(
                   animation: _opacityController,
                   builder: (context, child) {
-                    // Stagger the dots
                     final delay = index * 0.15;
                     final progress = (_opacityController.value + delay) % 1.0;
 

@@ -9,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../profile/screens/profile_screen.dart';
 
-/// Main dashboard/feed screen
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -100,7 +99,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // User profile header
             DrawerHeader(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
@@ -186,7 +184,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: ListView(
         children: [
-          // Post creation bar — skeleton until user data is ready
           if (_username == null)
             const CreatePostSkeleton()
           else
@@ -263,7 +260,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           const SizedBox(height: 8),
-          // Feed posts
           StreamBuilder<List<Post>>(
             stream: FirestoreService().streamPosts(),
             builder: (context, snapshot) {

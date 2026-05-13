@@ -27,12 +27,10 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
     final result = <String, dynamic>{};
 
     try {
-      // 1. Check if user exists in tbl_users
       final userDoc = await _db.collection('tbl_users').doc(targetUserId).get();
       result['userExists'] = userDoc.exists;
       result['userData'] = userDoc.data() ?? {};
 
-      // 2. Find all posts by this user
       final userPosts = await _db
           .collection('tbl_posts')
           .where('user_id', isEqualTo: targetUserId)
@@ -43,7 +41,6 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
         'data': doc.data(),
       }).toList();
 
-      // 3. Check collection stats
       final usersCount = await _db.collection('tbl_users').count().get();
       final postsCount = await _db.collection('tbl_posts').count().get();
       result['collectionStats'] = {
@@ -51,7 +48,6 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
         'tbl_posts': postsCount.count,
       };
 
-      // 4. Sample documents from each collection
       final sampleUsers = await _db.collection('tbl_users').limit(2).get();
       final samplePosts = await _db.collection('tbl_posts').limit(2).get();
       
@@ -117,7 +113,6 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Posts Section
               _buildSection(
                 'Posts by this user: ${data['postsCount'] ?? 0}',
                 [
@@ -138,7 +133,6 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Collection Stats
               _buildSection(
                 'Collection Statistics',
                 [
@@ -147,7 +141,6 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Sample Users
               _buildSection(
                 'Sample Users (first 2)',
                 [
@@ -169,7 +162,6 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Sample Posts
               _buildSection(
                 'Sample Posts (first 2)',
                 [
@@ -249,15 +241,3 @@ class _FirestoreDebugScreenState extends State<FirestoreDebugScreen> {
   }
 }
 
-// To use this debug screen, add it to your navigation:
-// 
-// Example in dashboard_screen.dart:
-// FloatingActionButton(
-//   onPressed: () {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(builder: (_) => const FirestoreDebugScreen()),
-//     );
-//   },
-//   child: const Icon(Icons.bug_report),
-// )

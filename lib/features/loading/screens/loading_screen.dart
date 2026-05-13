@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/loading_animation.dart';
 
-/// Loading screen that displays on app startup
-/// Shows animation for 3 seconds then navigates to landing page
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
 
@@ -14,14 +12,12 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    // Use addPostFrameCallback to ensure widget tree is built before navigation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _navigateToLanding();
     });
   }
 
   Future<void> _navigateToLanding() async {
-    // Wait for animation + buffer time (3 seconds total)
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
